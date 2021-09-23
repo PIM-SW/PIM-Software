@@ -1,5 +1,5 @@
 #include "pim_avail_op.h"
-
+#include "cblas.h"
 double DMAC_16(double *X_d, double *Y_d);
 
 float cblas_sdsdot(const int N, const float alpha, const float *X,

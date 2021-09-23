@@ -1,5 +1,5 @@
 #include "pim_avail_op.h"
-
+#include "cblas.h"
 void cblas_sscal(const int N, const float alpha, float *X, const int incX) {
     int size_x = N * incX;
     printf("%d\n", size_x);

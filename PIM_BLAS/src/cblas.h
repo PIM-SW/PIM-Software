@@ -2,6 +2,11 @@
 #define CBLAS_H
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C" {
+	/* Assume C declarations for C++ */
+#endif  /* __cplusplus */
+
 typedef enum CBLAS_ORDER {
     CblasRowMajor=101,
     CblasColMajor=102
@@ -36,4 +41,8 @@ void cblas_sgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
                 const int K, const float alpha, const float *A,
                 const int lda, const float *B, const int ldb,
                 const float beta, float *C, const int ldc);
+#ifdef __cplusplus
+}
+#endif  /* __cplusplus */
+
 #endif

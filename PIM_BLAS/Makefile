@@ -1,21 +1,30 @@
 .RECIPEPREFIX = >
 SRCDIR=src
 OBJDIR=obj
-TARGET=escal_cblas
+TARGET1=libopenblas.so.0.0.0
+TARGET2=libopenblas.so
+TARGET3=libopenblas.so.0
 SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 
 CC=clang
-CFLAGS=-std=c11 -g -Wall
-
-all: $(TARGET)
+CFL=-shared -Wl,-soname,libopenblas.so.0
+CFLAGS=-fPIC
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 > $(CC) $(CFLAGS) -c -o $@ $<
 
-$(TARGET): $(OBJS)
-> $(CC) $(CFLAGS) -o $@ $(OBJS)
+$(TARGET1): $(OBJS)
+> $(CC) $(CFL) -o $@ $(OBJS)
+
+all: $(TARGET1) $(TARGET2) $(TARGET3)
+
+$(TARGET2): | $(TARGET1)
+> ln -s $(TARGET1) $@
+
+$(TARGET3): | $(TARGET1)
+> ln -s $(TARGET1) $@
 
 
 clean:
-> rm $(OBJS) $(TARGET)
+> rm $(OBJS) $(TARGET1) $(TARGET2) $(TARGET3)
