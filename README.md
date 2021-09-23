@@ -1,6 +1,6 @@
 # PIM-API
 
-don't use make
+Don't use make
 
 	$ make all
 
