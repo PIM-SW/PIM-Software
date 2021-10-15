@@ -11,3 +11,4 @@ And then you need to enter the export library command inside the application dir
 	$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:(PIM_BLAS directory location)
 
 Thank you!
+test test
