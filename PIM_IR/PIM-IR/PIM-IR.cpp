@@ -48,9 +48,7 @@ static llvm::cl::opt<std::string> output_filename("o",
     llvm::cl::init("-"));
     
 void initPasses() {
-  mlir::registerPass("convert-pim",
-      "pim",
-      []() -> std::unique_ptr<mlir::Pass> {
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
         return mlir::createConvertPIMToPNMPass();
       });
 }

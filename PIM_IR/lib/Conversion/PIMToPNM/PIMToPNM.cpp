@@ -165,6 +165,7 @@ namespace{
 				registry.insert<PIMOpsDialect, PNMOpsDialect>();
 			}  
 			void runOnOperation() final;
+                        StringRef getArgument() const {return "convert-pim";}
 		};
 }
 

@@ -23,6 +23,7 @@ template <typename T>
 class OperationPass;
 
 std::unique_ptr<Pass> createConvertPIMToPNMPass();
+std::unique_ptr<Pass> replaceCallToPIMOps();
 
 } // end namespace mlir
 

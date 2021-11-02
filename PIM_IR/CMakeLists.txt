@@ -10,9 +10,9 @@ set(CMAKE_BUILD_TYPE Release)
 #set(LLVM_ENABLE_ASSERTIONS ON)
 #set(CMAKE_C_COMPILER clang)
 #set(CMAKE_CXX_COMPILER clang++)
-set(LLVM_ENABLE_LLD ON)
-set(LLVM_DIR ~/llvm-project/build/lib/cmake/llvm)
-set(MLIR_DIR ~/llvm-project/build/lib/cmake/mlir)
+#set(LLVM_ENABLE_LLD ON)
+#set(LLVM_DIR ~/llvm-project/build/lib/cmake/llvm)
+#set(MLIR_DIR ~/llvm-project/build/lib/cmake/mlir)
 set(CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard to conform to")
 
 find_package(MLIR REQUIRED CONFIG)
@@ -35,6 +35,7 @@ PIMOps
 PNMOps
 PIMToPNM
 MLIRIR
+CallToPIM
 )
 
 include_directories(${LLVM_INCLUDE_DIRS})

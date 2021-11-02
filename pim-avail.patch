@@ -1,0 +1,95 @@
+From af06cb63f0e58c9dcbfc8616c19a7ab793b1df21 Mon Sep 17 00:00:00 2001
+From: Seongho Jeong <sungho232945@gmail.com>
+Date: Tue, 2 Nov 2021 14:54:29 +0900
+Subject: [PATCH] add 'pim-avail' pass
+
+---
+ cmake/ExternalProject.cmake | 14 ++++++++++++++
+ mlir-clang/CMakeLists.txt   |  6 ++++++
+ mlir-clang/mlir-clang.cc    |  7 +++++++
+ 3 files changed, 27 insertions(+)
+ create mode 100644 cmake/ExternalProject.cmake
+
+diff --git a/cmake/ExternalProject.cmake b/cmake/ExternalProject.cmake
+new file mode 100644
+index 000000000000..acdd81084f01
+--- /dev/null
++++ b/cmake/ExternalProject.cmake
+@@ -0,0 +1,14 @@
++include (ExternalProject)
++set (PIM_IR "PIM_IR")
++
++ExternalProject_Add(${PIM_IR}
++    SOURCE_DIR "${CMAKE_SOURCE_DIR}/../PIM_IR"
++    INSTALL_COMMAND true
++)
++ExternalProject_Get_Property(PIM_IR SOURCE_DIR)
++set(PIM_INCLUDE_DIR "${SOURCE_DIR}/include")
++
++add_library(CallToPIM STATIC IMPORTED GLOBAL)
++set_target_properties(CallToPIM PROPERTIES IMPORTED_LOCATION ${SOURCE_DIR}/build/lib/libCallToPIM.a)
++add_library(PIMOps STATIC IMPORTED GLOBAL)
++set_target_properties(PIMOps PROPERTIES IMPORTED_LOCATION ${SOURCE_DIR}/build/lib/libPIMOps.a)
+\ No newline at end of file
+diff --git a/mlir-clang/CMakeLists.txt b/mlir-clang/CMakeLists.txt
+index 373a7dc3c27a..2b71affd63c0 100644
+--- a/mlir-clang/CMakeLists.txt
++++ b/mlir-clang/CMakeLists.txt
+@@ -28,9 +28,12 @@ add_clang_tool(mlir-clang
+   Lib/CGStmt.cc
+ )
+ 
++include("${CMAKE_SOURCE_DIR}/cmake/ExternalProject.cmake")
++
+ target_include_directories(mlir-clang PRIVATE
+   "${LLVM_SOURCE_DIR}/../clang/include"
+   "${CMAKE_BINARY_DIR}/tools/clang/include"
++  "${PIM_INCLUDE_DIR}"
+ )
+ 
+ target_compile_definitions(mlir-clang PUBLIC -DLLVM_OBJ_ROOT="${LLVM_BINARY_DIR}")
+@@ -66,6 +69,9 @@ target_link_libraries(mlir-clang PRIVATE
+   clangFrontendTool
+   clangLex
+   clangSerialization
++
++  CallToPIM
++  PIMOps
+ )
+ add_dependencies(mlir-clang MLIRPolygeistOpsIncGen MLIRPolygeistPassIncGen)
+ add_subdirectory(Test)
+diff --git a/mlir-clang/mlir-clang.cc b/mlir-clang/mlir-clang.cc
+index de2f5c769841..54cad8e971ca 100644
+--- a/mlir-clang/mlir-clang.cc
++++ b/mlir-clang/mlir-clang.cc
+@@ -49,6 +49,7 @@
+ 
+ #include "polygeist/Dialect.h"
+ #include "polygeist/Passes/Passes.h"
++#include "Pass/Passes.h"
+ 
+ using namespace llvm;
+ 
+@@ -82,6 +83,9 @@ static cl::opt<bool> RaiseToAffine("raise-scf-to-affine", cl::init(false),
+ static cl::opt<bool> ScalarReplacement("scal-rep", cl::init(true),
+                                        cl::desc("Raise SCF to Affine"));
+ 
++static cl::opt<bool> ReplacePIMOps("pim-avail", cl::init(false),
++                                       cl::desc("Replace PIM ops to pim dialect"));
++
+ static cl::opt<bool>
+     DetectReduction("detect-reduction", cl::init(false),
+                     cl::desc("Detect reduction in inner most loop"));
+@@ -441,6 +445,9 @@ int main(int argc, char **argv) {
+       if (ScalarReplacement)
+         optPM.addPass(mlir::createAffineScalarReplacementPass());
+     }
++    if (ReplacePIMOps) {
++      optPM.addPass(mlir::replaceCallToPIMOps());
++    }
+     if (mlir::failed(pm.run(module.get()))) {
+       module->dump();
+       return 4;
+-- 
+2.17.1
+
