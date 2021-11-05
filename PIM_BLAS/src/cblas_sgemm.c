@@ -5,119 +5,68 @@ void cblas_sgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 	const int K, const float alpha, const float *A,
 	const int lda, const float *B, const int ldb,
 	const float beta, float *C, const int ldc) {
-	float tempA[256] = { 0 }, tempB[256] = { 0 }, tempC[256] = { 0 };
-	float *pA = tempA, *pB = tempB, *pC = tempC;
-	if (M < 16 || K < 16) {
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < K; j++) {
-				tempA[16 * i + j] = A[K*i + j];
+	for (int m = 0; m < M; m++) {
+		for (int n = 0; n < N; n++) {
+			float tempAB = 0;
+			float tempC = 0;
+			for (int k = 0; k < ((K-1)/16) + 1; k++) {
+				float tempA[16] = { 0 };
+				float tempB[16] = { 0 };
+				for (int i = 0; i < 16; i++) {
+					if( 16*k + i < K ) {
+						if(Order == 101 && TransA == 111 && TransB == 111) {
+								tempA[i] = A[lda*m + 16*k + i];
+								tempB[i] = B[ldb*(16*k + i) + n];
+						}
+						else if(Order == 101 && TransA == 111 && TransB == 112) {
+							tempA[i] = A[lda*m + 16*k + i];
+							tempB[i] = B[ldb*n + 16*k + i];
+						}
+						else if(Order == 101 && TransA == 112 && TransB == 111) {
+							tempA[i] = A[lda*(16*k + i) + n];
+							tempB[i] = B[ldb*(16*k + i) + n];
+						}
+						else if(Order == 101 && TransA == 112 && TransB == 112) {
+							tempA[i] = A[lda*(16*k + i) + n];
+							tempB[i] = B[lda*n + 16*k + i];
+						}
+						else if (Order == 102 && TransA == 111 && TransB == 111) {
+							tempA[i] = A[lda*(16*k + i) + n];
+							tempB[i] = B[ldb*n + 16*k + i];
+						}
+						else if (Order == 102 && TransA == 111 && TransB == 112) {
+							tempA[i] = A[lda*(16*k + i) + n];
+							tempB[i] = B[ldb*(16*k + i) + n];
+						}
+						else if (Order == 102 && TransA == 112 && TransB == 111) {
+							tempA[i] = A[lda*m + 16*k + i];
+							tempB[i] = B[ldb*n + 16*k + i];
+						}
+						else if (Order == 102 && TransA == 112 && TransB == 112) {
+							tempA[i] = A[lda*m + 16*k + i];
+							tempB[i] = B[ldb*(16*k + i) + n];
+						}
+					}
+					if (TransA == 113 || TransA == 114) {
+						printf("Not Support Complex\n");
+						assert(0);
+					}
+					if (TransB == 113 || TransB == 114) {
+						printf("Not Support Complex\n");
+						assert(0);
+					}
+				}
+				tempAB += MAC_16(tempA, tempB);
+			}
+			if(Order == 101) {
+				tempC = C[ldc*m + n];
+				C[ldc*m + n] = alpha*tempAB + beta*tempC;
+			}
+			else if(Order == 102) {
+				tempC = C[m + lda*n];
+				C[m + lda*n] = alpha*tempAB + beta*tempC;
 			}
 		}
 	}
-	if (K < 16 || N < 16) {
-		for (int i = 0; i < K; i++) {
-			for (int j = 0; j < N; j++) {
-				tempB[16 * i + j] = B[N*i + j];
-			}
-		}
-	}
-	if (M < 16 || N < 16) {
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				tempC[16 * i + j] = C[N*i + j];
-			}
-		}
-	}
-	float(*array2A)[16] = (float(*)[16]) tempA;
-	float(*array2B)[16] = (float(*)[16]) tempB;
-	float OrderChangeA[16][16], OrderChangeB[16][16],
-		transposeA[16][16], transposeB[16][16];
-	if (Order == 102) {
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				OrderChangeA[i][j] = array2A[j][i];
-				OrderChangeB[i][j] = array2B[j][i];
-			}
-		}
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				tempA[16 * i + j] = OrderChangeA[i][j];
-				tempB[16 * i + j] = OrderChangeB[i][j];
-			}
-		}
-	}
-	if (TransA == 112 || TransA == 113) {
-		for (int i = 0; i < K; i++) {
-			for (int j = 0; j < M; j++) {
-				transposeA[i][j] = array2A[j][i];
-			}
-		}
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < K; j++) {
-				tempA[16 * i + j] = transposeA[i][j];
-			}
-		}
-	}
-	if (TransB == 111 || TransB == 114) {
-		for (int i = 0; i < N; i++) {
-			for (int j = 0; j < K; j++) {
-				transposeB[i][j] = array2B[j][i];
-			}
-		}
-		for (int i = 0; i < K; i++) {
-			for (int j = 0; j < N; j++) {
-				tempB[16 * i + j] = transposeB[i][j];
-			}
-		}
-	}
-	if (TransA == 113 || TransA == 114) {
-		printf("Not Support Complex\n");
-	}
-	if (TransB == 113 || TransB == 114) {
-		printf("Not Support Complex\n");
-	}
-	float tempAB[256] = { 0 };
-	float *pAB = tempAB;
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < ldb; j++) {
-			tempAB[16 * i + j] = MAC_16(pA, pB);
-			pB = pB + 16;
-		}
-		pB = pB - 16 * ldb;
-		pA = pA + 16;
-	}
-	if (Order == 102) {
-		for (int i = 0; i < K; i++) {
-			for (int j = 0; j < M; j++) {
-				transposeA[i][j] = tempAB[16 * j + i];
-			}
-		}
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < K; j++) {
-				tempAB[16 * i + j] = transposeA[i][j];
-			}
-		}
-	}
-	for (int i = 0; i < M; i++) {
-		SIMD_SCAL_MUL_16(alpha, pAB);
-		pAB = pAB + 16;
-	}
-	pAB = pAB - 16 * M;
-	for (int i = 0; i < M; i++) {
-		SIMD_SCAL_MUL_16(beta, pC);
-		pC = pC + 16;
-	}
-	pC = pC - 16 * M;
-	for (int i = 0; i < M; i++) {
-		SIMD_ADD_16(pAB, pC);
-		pAB = pAB + 16;
-		pC = pC + 16;
-	}
-	pC = pC - 16 * M;
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			C[N*i + j] = tempC[16 * i + j];
-		}
-	}
-	printf("escal cblas_sgemm enabled!! \n");
+	printf("\nescal cblas_sgemm enabled!!\n");
 }
