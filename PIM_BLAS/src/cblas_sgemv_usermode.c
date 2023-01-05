@@ -1,10 +1,14 @@
 #include "pim_avail_op.h"
 #include "cblas.h"
-void cblas_sgemv(const enum CBLAS_ORDER Order,
+void cblas_sgemv_usermode(const enum CBLAS_ORDER Order,
 	const enum CBLAS_TRANSPOSE TransA, const int M, const int N,
 	const float alpha, const float *A, const int lda,
 	const float *X, const int incX, const float beta,
-	float *Y, const int incY) {
+	float *Y, const int incY, const int thread_group, const int block) {
+
+THREAD_GROUP_SIZE = thread_group;
+BLOCK_SIZE = block;
+
 #ifdef PRINT
 	printf("%s\n",__FILE__);
 #endif
@@ -74,4 +78,9 @@ void cblas_sgemv(const enum CBLAS_ORDER Order,
 	VEC_IMM_MUL(alpha, temp, N);
 	VEC_ADD(temp, Y, N);
 #endif
+
+THREAD_GROUP_SIZE = 0;
+BLOCK_SIZE = 0;
+
 }
+

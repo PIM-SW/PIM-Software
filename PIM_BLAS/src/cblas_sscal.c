@@ -1,15 +1,12 @@
 #include "pim_avail_op.h"
 #include "cblas.h"
 void cblas_sscal(const int N, const float alpha, float *X, const int incX) {
+#ifdef PRINT
+	printf("%s\n",__FILE__);
+#endif
     int size_x = N * incX;
-    printf("%d\n", size_x);
-    /*if(incX==1) {
-        for(int i=0; i<N; i=i+16) {
-            SIMD_SCAL_MUL_16(alpha, X);
-            X = X+16;
-        } 
-    }*/ //size 추가로 인한 주석 처리
     if(incX>=1) {
+#ifdef SIMD
         float tempX[16];
         for(int i=0; i<N; i=i+16) {
             for(int j=0; j<16; j++) {
@@ -22,8 +19,13 @@ void cblas_sscal(const int N, const float alpha, float *X, const int incX) {
                 X[(i+j)*incX] = tempX[j];
             }
         }
+#endif
+#ifdef BLAS
+			if(incX==1) {
+				VEC_IMM_MUL(alpha, X, N);
+			}
+#endif
     } else {
         assert(0);
     }
-    printf("escal cblas enabled!! \n");
 }
