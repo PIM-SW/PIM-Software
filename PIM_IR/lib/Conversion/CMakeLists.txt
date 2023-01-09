@@ -1,1 +1,6 @@
 add_subdirectory(PIMToPNM)
+add_subdirectory(PNMToLLVM)
+add_subdirectory(PIMToAPIM)
+add_subdirectory(APIMToLLVM)
+add_subdirectory(PIMToDPIM)
+add_subdirectory(DPIMToLLVM)

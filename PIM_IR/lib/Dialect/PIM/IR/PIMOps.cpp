@@ -136,11 +136,3 @@ void ACC_Op::build(mlir::OpBuilder &builder, mlir::OperationState &state,
   state.addOperands(X);
 }
 
-//===----------------------------------------------------------------------===//
-// PIMConvertOp
-
-void PIMConvertOp::build(mlir::OpBuilder &builder, mlir::OperationState &state,
-                  mlir::Value lhs) {
-  state.addTypes(UnrankedTensorType::get(builder.getF64Type()));
-  state.addOperands(lhs);
-}

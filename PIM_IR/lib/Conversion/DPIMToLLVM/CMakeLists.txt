@@ -1,5 +1,5 @@
-add_mlir_dialect_library(PIMToAPIM
-	PIMToAPIM.cpp
+add_mlir_dialect_library(DPIMToLLVM
+	DPIMToLLVM.cpp
 
 	ADDITIONAL_HEADER_DIRS
 	${PROJECT_SOURCE_DIR}/
@@ -8,16 +8,14 @@ add_mlir_dialect_library(PIMToAPIM
 	${PROJECT_BINARY_DIR}/include
 
 	DEPENDS
-	APIMOpsInc
-	PIMOpsInc
+	DPIMOpsInc
 
 	LINK_LIBS PUBLIC
 	MLIRIR
-	APIMOps 
-	PIMOps
-	PIMAPIOps
+	#LLVMOps 
+	DPIMOps
 	)
-target_include_directories(PIMToAPIM
+target_include_directories(DPIMToLLVM
 	PRIVATE
 	${PROJECT_SOURCE_DIR}/
 	${PROJECT_SOURCE_DIR}/include
@@ -26,15 +24,14 @@ target_include_directories(PIMToAPIM
 	)
 
 #Header dependancies
-add_dependencies(PIMToAPIM
-	PIMOpsInc
-	PIMAPIOpsInc
-	APIMOpsInc)
+add_dependencies(DPIMToLLVM
+	DPIMOpsInc
+	)
 
 # Linking dependancies
-add_dependencies(PIMToAPIM 
-	APIMOps 
-	PIMOps
-	PIMAPIOps)
-install(TARGETS PIMToAPIM DESTINATION lib)
+add_dependencies(DPIMToLLVM 
+	#	LLVMOps 
+	DPIMOps
+	)
+install(TARGETS DPIMToLLVM DESTINATION lib)
 

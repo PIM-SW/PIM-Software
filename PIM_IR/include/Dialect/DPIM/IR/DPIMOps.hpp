@@ -1,10 +1,10 @@
-//===-------------------- PNMOps.hpp - PNM Ops Header ---------------------===//
+//===-------------------- DPIMOps.hpp - DPIM Ops Header ---------------------===//
 //
 //===-------------------------- corelab heelim ----------------------------===//
 //
 //===----------------------------------------------------------------------===//
-#ifndef __PNM_OPS_H__
-#define __PNM_OPS_H__
+#ifndef __DPIM_OPS_H__
+#define __DPIM_OPS_H__
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
@@ -27,15 +27,15 @@
 
 namespace mlir {
 
-class PNMOpsDialect : public Dialect {
+class DPIMOpsDialect : public Dialect {
 public:
-    PNMOpsDialect(MLIRContext *context);
-    static StringRef getDialectNamespace() { return "pnm"; }
+    DPIMOpsDialect(MLIRContext *context);
+    static StringRef getDialectNamespace() { return "dpim"; }
 };
 } // end of namespace mlir
 
 #define GET_OP_CLASSES
-#include "Dialect/PNM/IR/PNMOps.hpp.inc"
+#include "Dialect/DPIM/IR/DPIMOps.hpp.inc"
 
 #endif
 

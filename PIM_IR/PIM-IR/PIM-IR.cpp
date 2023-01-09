@@ -33,8 +33,12 @@
 
 #include "Dialect/PIM/IR/PIMOps.hpp"
 #include "Dialect/PNM/IR/PNMOps.hpp"
+#include "Dialect/APIM/IR/APIMOps.hpp"
+#include "Dialect/DPIM/IR/DPIMOps.hpp"
 
 #include "Conversion/PIMToPNM/PIMToPNM.h"
+#include "Conversion/PIMToAPIM/PIMToAPIM.h"
+#include "Conversion/PIMToDPIM/PIMToDPIM.h"
 
 #include <iostream>
 namespace cl = llvm::cl;
@@ -51,29 +55,56 @@ void initPasses() {
   mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
         return mlir::createConvertPIMToPNMPass();
       });
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
+        return mlir::createConvertPNMToLLVMPass();
+      });
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
+        return mlir::createConvertPIMToAPIMPass();
+      });
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
+        return mlir::createConvertAPIMToLLVMPass();
+      });
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
+        return mlir::createConvertPIMToDPIMPass();
+      });
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
+        return mlir::createConvertDPIMToLLVMPass();
+      });
 }
 int main(int argc, char **argv) {
-  mlir::DialectRegistry registry;
-  registry.insert<mlir::PIMOpsDialect>();
-  registry.insert<mlir::PNMOpsDialect>();
-  initPasses();
-  
-//  mlir::registerAllPasses();
-  mlir::registerAsmPrinterCLOptions();
-  mlir::registerMLIRContextCLOptions();
-  mlir::registerPassManagerCLOptions();
-  mlir::PassPipelineCLParser passPipeline("", "Compiler passes to run");
-  llvm::cl::ParseCommandLineOptions(argc, argv, "MLIR\n");
+	mlir::DialectRegistry registry;
 
-  // Set up the input file.
-  std::string error_message;
-  auto file = mlir::openInputFile(input_filename, &error_message);
-  assert(file);
+	registry.insert<mlir::AffineDialect>();
+	registry.insert<mlir::vector::VectorDialect>();
+	registry.insert<mlir::LLVM::LLVMDialect>();
+	registry.insert<mlir::scf::SCFDialect>();
+	registry.insert<mlir::StandardOpsDialect>();
+	registry.insert<mlir::shape::ShapeDialect>();
+	registry.insert<mlir::math::MathDialect>();
+	registry.insert<mlir::memref::MemRefDialect>();
 
-  auto output = mlir::openOutputFile(output_filename, &error_message);
-  assert(output);
-  
-//  return mlir::asMainReturnCode(mlir::MlirOptMain(argc, argv, "test optimizer driver\n", registry));
-  return failed(mlir::MlirOptMain(output->os(), std::move(file), passPipeline,
-      registry, 0, 0, 1, 0, true));
+	registry.insert<mlir::PIMOpsDialect>();
+	registry.insert<mlir::PNMOpsDialect>();
+	registry.insert<mlir::APIMOpsDialect>();
+	registry.insert<mlir::DPIMOpsDialect>();
+	initPasses();
+
+	//  mlir::registerAllPasses();
+	mlir::registerAsmPrinterCLOptions();
+	mlir::registerMLIRContextCLOptions();
+	mlir::registerPassManagerCLOptions();
+	mlir::PassPipelineCLParser passPipeline("", "Compiler passes to run");
+	llvm::cl::ParseCommandLineOptions(argc, argv, "MLIR\n");
+
+	// Set up the input file.
+	std::string error_message;
+	auto file = mlir::openInputFile(input_filename, &error_message);
+	assert(file);
+
+	auto output = mlir::openOutputFile(output_filename, &error_message);
+	assert(output);
+
+	//  return mlir::asMainReturnCode(mlir::MlirOptMain(argc, argv, "test optimizer driver\n", registry));
+	return failed(mlir::MlirOptMain(output->os(), std::move(file), passPipeline,
+				registry, 0, 0, 1, 0, true));
 }

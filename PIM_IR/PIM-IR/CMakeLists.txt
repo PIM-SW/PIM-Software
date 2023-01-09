@@ -4,9 +4,8 @@ set(LIBS
 	${dialect_libs}
 	${conversion_libs}
 	MLIROptLib
-	PIMOps
-	PNMOps
-	PIMToPNM
+
+	${PIMLIBS}
 	)
 add_executable(PIM-IR 
 	PIM-IR.cpp
@@ -14,11 +13,11 @@ add_executable(PIM-IR
 add_dependencies(PIM-IR 
 	PIMOpsInc
 	PNMOpsInc
+	APIMOpsInc
+	DPIMOpsInc
 	)
 add_dependencies(PIM-IR 
-	PIMOps
-	PNMOps
-	PIMToPNM
+	${PIMLIBS}
 	)
 target_include_directories(PIM-IR
 	PRIVATE
@@ -32,7 +31,6 @@ target_link_libraries(PIM-IR
 	PRIVATE 
 	MLIRIR
 	${LIBS} 
-	${PIMLIBS}
 	)
 
 mlir_check_all_link_libraries(PIM-IR)

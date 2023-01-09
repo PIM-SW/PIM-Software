@@ -16,7 +16,7 @@ include "mlir/Interfaces/SideEffectInterfaces.td"
 
 def PNM_Dialect : Dialect {
     let name = "pnm";
-    let cppNamespace = "::mlir";
+    let cppNamespace = "::mlir::pnm";
 }
 
 //===----------------------------------------------------------------------===//
@@ -76,6 +76,22 @@ def PNM_SetOp : Op<PNM_Dialect, "set", []> {
   let builders = [
     OpBuilder<(ins "Value":$input)>
 	];
+}
+
+def PNM_LoadOp : Op<PNM_Dialect, "load", []> {
+  let summary = "load operation";
+  let description = [{
+  }];
+
+  let arguments = (ins F32MemRef:$input);
+}
+
+def PNM_StoreOp : Op<PNM_Dialect, "store", []> {
+  let summary = "store operation";
+  let description = [{
+  }];
+
+  let arguments = (ins F32MemRef:$input);
 }
 
 def PNM_CopyOp : Op<PNM_Dialect, "copy", []> {

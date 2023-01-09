@@ -5,11 +5,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef MLIR_CONVERSION_PIMToPNM_PIMToPNM_H_
-#define MLIR_CONVERSION_PIMToPNM_PIMToPNM_H_
+#ifndef MLIR_CONVERSION_PIMToDPIM_PIMToDPIM_H_
+#define MLIR_CONVERSION_PIMToDPIM_PIMToDPIM_H_
 #include "Pass/Passes.h"
 #include "Dialect/PIM/IR/PIMOps.hpp"
-#include "Dialect/PNM/IR/PNMOps.hpp"
+#include "Dialect/DPIM/IR/DPIMOps.hpp"
 #include <memory>
 
 namespace mlir {
@@ -21,23 +21,27 @@ template <typename T>
 class OperationPass;
 class RewritePatternSet;
 
-/// Populate the given list with patterns that convert from PIM to PNM.
-void populateLoweringPIMSIMDADDOpToPNMPatterns(
+/// Populate the given list with patterns that convert from PIM to DPIM.
+void populateLoweringPIMSIMDADDOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSUBOpToPNMPatterns(
+void populateLoweringPIMSIMDSUBOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDMULOpToPNMPatterns(
+void populateLoweringPIMSIMDMULOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDDIVOpToPNMPatterns(
+void populateLoweringPIMSIMDDIVOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALADDOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALADDOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALSUBOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALSUBOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALMULOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALMULOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALDIVOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALDIVOpToDPIMPatterns(
+    RewritePatternSet &patterns, MLIRContext *context);
+void populateLoweringPIMMACOpToDPIMPatterns(
+    RewritePatternSet &patterns, MLIRContext *context);
+void populateLoweringPIMACCOpToDPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
 } // namespace mlir
 
-#endif // MLIR_CONVERSION_PIMToPNM_PIMToPNM_H_
+#endif // MLIR_CONVERSION_PIMToDPIM_PIMToDPIM_H_

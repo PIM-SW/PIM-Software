@@ -30,6 +30,7 @@
 #include "Dialect/PNM/IR/PNMOps.hpp"
 
 using namespace mlir;
+using namespace pnm;
 
 //===----------------------------------------------------------------------===//
 // PNM dialect.

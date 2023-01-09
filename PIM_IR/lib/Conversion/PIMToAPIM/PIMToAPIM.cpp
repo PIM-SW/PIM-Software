@@ -1,4 +1,4 @@
-//===- PIMToPNM.cpp - conversion from PIM to PNM dialect ----------===//
+//===- PIMToAPIM.cpp - conversion from PIM Dialect to APIM Dialect ----------===//
 //
 //
 //
@@ -15,9 +15,13 @@
 #include "mlir/IR/Operation.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/Types.h"
+
+#include "mlir/Dialect/Arithmetic/IR/Arithmetic.h"
+
 #include "mlir/Support/LogicalResult.h"
 #include "mlir/Transforms/DialectConversion.h"
 #include "mlir/Transforms/Passes.h"
+
 #include "llvm/ADT/SetVector.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
@@ -26,20 +30,21 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "Pass/Passes.h"
-#include "Conversion/PIMToPNM/PIMToPNM.h"
+#include "Conversion/PIMToAPIM/PIMToAPIM.h"
 
 #include "Dialect/PIM/IR/PIMOps.hpp"
-#include "Dialect/PNM/IR/PNMOps.hpp"
+#include "Dialect/APIM/IR/APIMOps.hpp"
 
 #include <iostream>
 
 using namespace mlir;
-using namespace pnm;
+using namespace apim;
+
 //===----------------------------------------------------------------------===//
 //SIMDADD
 //===----------------------------------------------------------------------===//
-struct PIMSIMDADDOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDADDOpToPNM(MLIRContext *context)
+struct PIMSIMDADDOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDADDOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_ADD_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -47,30 +52,28 @@ struct PIMSIMDADDOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(0);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_ADD_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorOp>(loc, 
-				operandAdaptor.X(), 
-				operandAdaptor.Y(),
-				width,
-				type
-				);
+		auto loadop0 = rewriter.create<LoadOp>(loc, operandAdaptor.X());
+		auto loadop1 = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorOp>(loc, operandAdaptor.X(), inc, operandAdaptor.Y(), inc, width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
+
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDADDOpToPNMPatterns(
-		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDADDOpToPNM>(context);
+void mlir::populateLoweringPIMSIMDADDOpToAPIMPatterns(RewritePatternSet &patterns, MLIRContext *context) {
+	patterns.insert<PIMSIMDADDOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDSUB
 //===----------------------------------------------------------------------===//
-struct PIMSIMDSUBOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDSUBOpToPNM(MLIRContext *context)
+struct PIMSIMDSUBOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDSUBOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_SUB_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -78,30 +81,28 @@ struct PIMSIMDSUBOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(1);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_SUB_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorOp>(loc, 
-				operandAdaptor.X(), 
-				operandAdaptor.Y(),
-				width,
-				type
-				);
+		auto loadop0 = rewriter.create<LoadOp>(loc, operandAdaptor.X());
+		auto loadop1 = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorOp>(loc, operandAdaptor.X(), inc, operandAdaptor.Y(), inc, width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDSUBOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDSUBOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDSUBOpToPNM>(context);
+	patterns.insert<PIMSIMDSUBOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDMUL
 //===----------------------------------------------------------------------===//
-struct PIMSIMDMULOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDMULOpToPNM(MLIRContext *context)
+struct PIMSIMDMULOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDMULOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_MUL_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -109,30 +110,28 @@ struct PIMSIMDMULOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(2);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_MUL_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorOp>(loc, 
-				operandAdaptor.X(), 
-				operandAdaptor.Y(),
-				width,
-				type
-				);
+		auto loadop0 = rewriter.create<LoadOp>(loc, operandAdaptor.X());
+		auto loadop1 = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorOp>(loc, operandAdaptor.X(), inc, operandAdaptor.Y(), inc, width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDMULOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDMULOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDMULOpToPNM>(context);
+	patterns.insert<PIMSIMDMULOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDDIV
 //===----------------------------------------------------------------------===//
-struct PIMSIMDDIVOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDDIVOpToPNM(MLIRContext *context)
+struct PIMSIMDDIVOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDDIVOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_DIV_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -140,30 +139,28 @@ struct PIMSIMDDIVOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(3);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_DIV_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorOp>(loc, 
-				operandAdaptor.X(), 
-				operandAdaptor.Y(),
-				width,
-				type
-				);
+		auto loadop0 = rewriter.create<LoadOp>(loc, operandAdaptor.X());
+		auto loadop1 = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorOp>(loc, operandAdaptor.X(), inc, operandAdaptor.Y(), inc, width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDDIVOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDDIVOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDDIVOpToPNM>(context);
+	patterns.insert<PIMSIMDDIVOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDSCALADD
 //===----------------------------------------------------------------------===//
-struct PIMSIMDSCALADDOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDSCALADDOpToPNM(MLIRContext *context)
+struct PIMSIMDSCALADDOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDSCALADDOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_SCAL_ADD_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -171,30 +168,27 @@ struct PIMSIMDSCALADDOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(0);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_SCAL_ADD_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorImmOp>(loc, 
-				operandAdaptor.Y(),
-				operandAdaptor.X(), 
-				width,
-				type
-				);
+		auto loadop = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorImmOp>(loc, operandAdaptor.Y(), inc, operandAdaptor.X(), width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDSCALADDOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDSCALADDOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDSCALADDOpToPNM>(context);
+	patterns.insert<PIMSIMDSCALADDOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDSCALSUB
 //===----------------------------------------------------------------------===//
-struct PIMSIMDSCALSUBOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDSCALSUBOpToPNM(MLIRContext *context)
+struct PIMSIMDSCALSUBOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDSCALSUBOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_SCAL_SUB_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -202,30 +196,27 @@ struct PIMSIMDSCALSUBOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(1);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_SCAL_SUB_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorImmOp>(loc, 
-				operandAdaptor.Y(),
-				operandAdaptor.X(), 
-				width,
-				type
-				);
+		auto loadop = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorImmOp>(loc, operandAdaptor.Y(), inc, operandAdaptor.X(), width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDSCALSUBOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDSCALSUBOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDSCALSUBOpToPNM>(context);
+	patterns.insert<PIMSIMDSCALSUBOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDSCALMUL
 //===----------------------------------------------------------------------===//
-struct PIMSIMDSCALMULOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDSCALMULOpToPNM(MLIRContext *context)
+struct PIMSIMDSCALMULOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDSCALMULOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_SCAL_MUL_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -233,30 +224,27 @@ struct PIMSIMDSCALMULOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(2);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_SCAL_MUL_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorImmOp>(loc, 
-				operandAdaptor.Y(),
-				operandAdaptor.X(), 
-				width,
-				type
-				);
+		auto loadop = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorImmOp>(loc, operandAdaptor.Y(), inc, operandAdaptor.X(), width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDSCALMULOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDSCALMULOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDSCALMULOpToPNM>(context);
+	patterns.insert<PIMSIMDSCALMULOpToAPIM>(context);
 }
-//===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
 //SIMDSCALDIV
 //===----------------------------------------------------------------------===//
-struct PIMSIMDSCALDIVOpToPNM : public mlir::ConversionPattern {
-	PIMSIMDSCALDIVOpToPNM(MLIRContext *context)
+struct PIMSIMDSCALDIVOpToAPIM : public mlir::ConversionPattern {
+	PIMSIMDSCALDIVOpToAPIM(MLIRContext *context)
 		: ConversionPattern(mlir::SIMD_SCAL_DIV_Op::getOperationName(), 1, context) {}
 
 	LogicalResult matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<Value> operands,
@@ -264,59 +252,60 @@ struct PIMSIMDSCALDIVOpToPNM : public mlir::ConversionPattern {
 		auto loc = op->getLoc();
 		IntegerAttr width = rewriter.getI32IntegerAttr(16);
 		IntegerAttr type = rewriter.getI32IntegerAttr(3);
+		IntegerAttr inc = rewriter.getI32IntegerAttr(1);
 
 		SIMD_SCAL_DIV_OpAdaptor operandAdaptor(operands);
-		auto vectorop = rewriter.create<VectorImmOp>(loc, 
-				operandAdaptor.Y(),
-				operandAdaptor.X(), 
-				width,
-				type
-				);
+		auto loadop = rewriter.create<LoadOp>(loc, operandAdaptor.Y());
+		auto vectorop = rewriter.create<VectorImmOp>(loc, operandAdaptor.Y(), inc, operandAdaptor.X(), width, type);
+		auto storeop = rewriter.create<StoreOp>(loc, operandAdaptor.Y(), width);
 		rewriter.replaceOp(op, vectorop->getResult(0));
 		return success();
 	}
 };
 
-void mlir::populateLoweringPIMSIMDSCALDIVOpToPNMPatterns(
+void mlir::populateLoweringPIMSIMDSCALDIVOpToAPIMPatterns(
 		RewritePatternSet &patterns, MLIRContext *context) {
-	patterns.insert<PIMSIMDSCALDIVOpToPNM>(context);
+	patterns.insert<PIMSIMDSCALDIVOpToAPIM>(context);
 }
+
 //===----------------------------------------------------------------------===//
 
 namespace{
-	struct ConvertPIMToPNMPass
-		: public PassWrapper<ConvertPIMToPNMPass, OperationPass<ModuleOp>>{
+	struct ConvertPIMToAPIMPass
+		: public PassWrapper<ConvertPIMToAPIMPass, OperationPass<ModuleOp>>{
 			void getDependentDialects(mlir::DialectRegistry &registry) const override {
-				registry.insert<PIMOpsDialect, PNMOpsDialect>();
-			}  
+				registry.insert<PIMOpsDialect, APIMOpsDialect>();
+			}
 			void runOnOperation() final;
-			StringRef getArgument() const {return "convert-pnm";}
+			StringRef getArgument() const override { return "convert-apim";}
 		};
 }
 
-void ConvertPIMToPNMPass::runOnOperation() {
+void ConvertPIMToAPIMPass::runOnOperation() {
 	ModuleOp module = getOperation();
 	ConversionTarget target(getContext());
 
 	target.addIllegalDialect<PIMOpsDialect>();
-	target.addLegalDialect<PNMOpsDialect>();
+	target.addLegalDialect<APIMOpsDialect>();
 
 	RewritePatternSet patterns(&getContext());
 
 	// ----------- Adding Patterns for Lowering Pass ----------- //
-	populateLoweringPIMSIMDADDOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDSUBOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDMULOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDDIVOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDSCALADDOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDSCALSUBOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDSCALMULOpToPNMPatterns(patterns, &getContext());
-	populateLoweringPIMSIMDSCALDIVOpToPNMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDADDOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDSUBOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDMULOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDDIVOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDSCALADDOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDSCALSUBOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDSCALMULOpToAPIMPatterns(patterns, &getContext());
+	populateLoweringPIMSIMDSCALDIVOpToAPIMPatterns(patterns, &getContext());
 	// --------------------------------------------------------- //
 	if (mlir::failed(applyPartialConversion(module, target, std::move(patterns)))) {
 		signalPassFailure();
-	}	
+	}
 }
-std::unique_ptr<mlir::Pass> mlir::createConvertPIMToPNMPass() {
-	return std::make_unique<ConvertPIMToPNMPass>();
+
+std::unique_ptr<mlir::Pass> mlir::createConvertPIMToAPIMPass() {
+	return std::make_unique<ConvertPIMToAPIMPass>();
 }
+

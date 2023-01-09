@@ -22,8 +22,16 @@ class ModuleOp;
 template <typename T>
 class OperationPass;
 
-std::unique_ptr<Pass> createConvertPIMToPNMPass();
 std::unique_ptr<Pass> replaceCallToPIMOps();
+
+std::unique_ptr<Pass> createConvertPIMToPNMPass();
+std::unique_ptr<Pass> createConvertPNMToLLVMPass();
+
+std::unique_ptr<Pass> createConvertPIMToAPIMPass();
+std::unique_ptr<Pass> createConvertAPIMToLLVMPass();
+
+std::unique_ptr<Pass> createConvertPIMToDPIMPass();
+std::unique_ptr<Pass> createConvertDPIMToLLVMPass();
 
 } // end namespace mlir
 

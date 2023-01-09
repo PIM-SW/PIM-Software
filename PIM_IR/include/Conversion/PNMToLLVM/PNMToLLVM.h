@@ -5,10 +5,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef MLIR_CONVERSION_PIMCOMMON_PIMCOMMON_H_
-#define MLIR_CONVERSION_PIMCOMMON_PIMCOMMON_H_
+#ifndef MLIR_CONVERSION_PNMToLLVM_PNMToLLVM_H_
+#define MLIR_CONVERSION_PNMToLLVM_PNMToLLVM_H_
 #include "Pass/Passes.h"
-#include "Dialect/PIM/IR/PIMOps.hpp"
+#include "Dialect/PNM/IR/PNMOps.hpp"
 #include <memory>
 
 namespace mlir {
@@ -20,9 +20,9 @@ template <typename T>
 class OperationPass;
 class RewritePatternSet;
 
-/// Populate the given list with patterns that convert locally in PIM Dialect
-void populateConvertingPIMMMMulToPIMMVMulPatterns(
-    RewritePatternSet &patterns, MLIRContext *context);
+/// Populate the given list with patterns that convert from PNM to LLVM.
+void populateLoweringPNMVectorOpToLLVMPatterns(RewritePatternSet &patterns, MLIRContext *context);
+void populateLoweringPNMVectorImmOpToLLVMPatterns(RewritePatternSet &patterns, MLIRContext *context);
 } // namespace mlir
 
-#endif // MLIR_CONVERSION_PIMCOMMON_PIMCOMMON_H_
+#endif // MLIR_CONVERSION_PNMToLLVM_PNMToLLVM_H_

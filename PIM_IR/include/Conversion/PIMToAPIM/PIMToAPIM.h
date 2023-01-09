@@ -5,11 +5,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-#ifndef MLIR_CONVERSION_PIMToPNM_PIMToPNM_H_
-#define MLIR_CONVERSION_PIMToPNM_PIMToPNM_H_
+#ifndef MLIR_CONVERSION_PIMToAPIM_PIMToAPIM_H_
+#define MLIR_CONVERSION_PIMToAPIM_PIMToAPIM_H_
 #include "Pass/Passes.h"
 #include "Dialect/PIM/IR/PIMOps.hpp"
-#include "Dialect/PNM/IR/PNMOps.hpp"
+#include "Dialect/APIM/IR/APIMOps.hpp"
 #include <memory>
 
 namespace mlir {
@@ -21,23 +21,23 @@ template <typename T>
 class OperationPass;
 class RewritePatternSet;
 
-/// Populate the given list with patterns that convert from PIM to PNM.
-void populateLoweringPIMSIMDADDOpToPNMPatterns(
+/// Populate the given list with patterns that convert from PIM to APIM.
+void populateLoweringPIMSIMDADDOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSUBOpToPNMPatterns(
+void populateLoweringPIMSIMDSUBOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDMULOpToPNMPatterns(
+void populateLoweringPIMSIMDMULOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDDIVOpToPNMPatterns(
+void populateLoweringPIMSIMDDIVOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALADDOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALADDOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALSUBOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALSUBOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALMULOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALMULOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
-void populateLoweringPIMSIMDSCALDIVOpToPNMPatterns(
+void populateLoweringPIMSIMDSCALDIVOpToAPIMPatterns(
     RewritePatternSet &patterns, MLIRContext *context);
 } // namespace mlir
 
-#endif // MLIR_CONVERSION_PIMToPNM_PIMToPNM_H_
+#endif // MLIR_CONVERSION_PIMToAPIM_PIMToAPIM_H_

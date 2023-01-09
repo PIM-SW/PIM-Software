@@ -33,9 +33,17 @@ include(HandleLLVMOptions)
 set(PIMLIBS
 PIMOps
 PNMOps
+APIMOps
+DPIMOps
+
 PIMToPNM
-MLIRIR
-CallToPIM
+PNMToLLVM
+
+PIMToAPIM
+APIMToLLVM
+
+PIMToDPIM
+DPIMToLLVM
 )
 
 include_directories(${LLVM_INCLUDE_DIRS})
